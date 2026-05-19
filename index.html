@@ -3,51 +3,225 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>正在跳转…</title>
-  <meta http-equiv="refresh" content="0; url=AI对话风格调优器.html">
-  <script>
-    window.location.replace('AI对话风格调优器.html');
-  </script>
+  <title>html_ft_llm_any_style</title>
   <style>
     :root {
-      --style-tuning-color-bg: #FEFDFB;
-      --style-tuning-color-surface: #FFFFFF;
-      --style-tuning-color-text: #252A32;
-      --style-tuning-color-text-secondary: #5B626B;
-      --style-tuning-color-accent: #3080E0;
-      --style-tuning-color-border: #E0E0E0;
-      --style-tuning-radius-medium: 8px;
-      --style-tuning-shadow-hairline: 0 1px 1px rgba(45, 49, 53, 0.04);
+      --color-bg: #FEFDFB;
+      --color-surface: #FFFFFF;
+      --color-surface-alt: #F7F9F8;
+      --color-text: #252A32;
+      --color-text-secondary: #5B626B;
+      --color-accent: #3080E0;
+      --color-accent-deep: #1F6FC8;
+      --color-mint: #58B7A7;
+      --color-border: #E0E0E0;
+      --color-border-strong: #D0D0D0;
+      --radius-sm: 6px;
+      --shadow-soft: 0 8px 24px rgba(45, 49, 53, 0.08);
+      --focus-ring: 0 0 0 3px rgba(48, 128, 224, 0.18);
+      --easing: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
+      min-height: 100vh;
       font-family: Inter, "SF Pro Text", "Segoe UI", "PingFang SC",
         "Noto Sans CJK SC", "Microsoft YaHei", system-ui, -apple-system,
         sans-serif;
-      margin: 0;
-      padding: 2rem;
-      min-height: 100vh;
-      box-sizing: border-box;
-      display: grid;
-      place-content: center;
-      line-height: 1.6;
-      text-align: center;
-      color: var(--style-tuning-color-text-secondary);
+      color: var(--color-text);
       background:
         linear-gradient(135deg, #FFFFFF 0%, #F7F9F8 55%, #F3FAF8 100%);
+      letter-spacing: 0;
+      -webkit-font-smoothing: antialiased;
     }
-    a {
-      color: var(--style-tuning-color-accent);
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 64px;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 1px rgba(45, 49, 53, 0.04);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--color-text);
+    }
+
+    .brand-subtitle {
+      margin: 0.18rem 0 0;
+      font-size: 0.78rem;
+      color: var(--color-text-secondary);
+      line-height: 1.3;
+    }
+
+    .tool-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tool-button,
+    .repo-link {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font: inherit;
+      font-size: 0.9rem;
       font-weight: 600;
       text-decoration: none;
+      cursor: pointer;
+      transition:
+        border-color 180ms var(--easing),
+        box-shadow 180ms var(--easing),
+        background 180ms var(--easing),
+        color 180ms var(--easing);
     }
-    a:hover { text-decoration: underline; }
+
+    .tool-button:hover,
+    .repo-link:hover {
+      border-color: var(--color-border-strong);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tool-button:focus-visible,
+    .repo-link:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .tool-button.active {
+      color: #FFFFFF;
+      border-color: var(--color-accent-deep);
+      background: linear-gradient(180deg, #3B8BE8 0%, #1F6FC8 100%);
+      box-shadow: 0 10px 28px rgba(48, 128, 224, 0.18);
+    }
+
+    .repo-link {
+      color: var(--color-accent-deep);
+      border-color: rgba(48, 128, 224, 0.28);
+      background: #FFFFFF;
+    }
+
+    .tool-frame {
+      width: 100%;
+      min-height: calc(100vh - 64px);
+      border: 0;
+      display: block;
+      background: var(--color-surface-alt);
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .tool-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tool-button,
+      .repo-link {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .repo-link {
+        grid-column: 1 / -1;
+      }
+
+      .tool-frame {
+        min-height: calc(100vh - 138px);
+      }
+    }
   </style>
-  <noscript>
-    <meta http-equiv="refresh" content="0; url=AI对话风格调优器.html">
-  </noscript>
-  </head>
+</head>
 <body>
-  正在跳转到应用… 如未自动跳转，请点击
-  <a href="AI对话风格调优器.html">AI 对话风格调优器</a>。
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1 class="brand-title">html_ft_llm_any_style</h1>
+        <p class="brand-subtitle">LLM 风格调优工具集合</p>
+      </div>
+      <nav class="tool-actions" aria-label="工具切换">
+        <button class="tool-button active" type="button" data-page="ft_voice_style.html">
+          对话风格
+        </button>
+        <button class="tool-button" type="button" data-page="ft_code_style.html">
+          代码风格
+        </button>
+        <a
+          class="repo-link"
+          href="https://github.com/meomeo-dev/html_ft_llm_any_style"
+          target="_blank"
+          rel="noopener"
+        >GitHub 仓库</a>
+      </nav>
+    </header>
+    <iframe
+      id="toolFrame"
+      class="tool-frame"
+      src="ft_voice_style.html"
+      title="LLM 风格调优工具"
+    ></iframe>
+  </div>
+
+  <script>
+    const toolFrame = document.getElementById('toolFrame');
+    const toolButtons = Array.from(document.querySelectorAll('.tool-button'));
+    const pages = new Set(toolButtons.map(button => button.dataset.page));
+
+    function selectTool(page, shouldUpdateHash = true) {
+      const nextPage = pages.has(page) ? page : 'ft_voice_style.html';
+      toolFrame.src = nextPage;
+      toolButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.page === nextPage);
+      });
+      if (shouldUpdateHash) {
+        const hash = nextPage === 'ft_code_style.html' ? '#code' : '#voice';
+        history.replaceState(null, '', hash);
+      }
+    }
+
+    toolButtons.forEach(button => {
+      button.addEventListener('click', () => selectTool(button.dataset.page));
+    });
+
+    selectTool(location.hash === '#code' ? 'ft_code_style.html' : 'ft_voice_style.html', false);
+  </script>
 </body>
 </html>

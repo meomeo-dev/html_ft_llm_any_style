@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 代码风格调优器</title>
+        <style>
+        :root {
+            --color-bg: #FEFDFB;
+            --color-surface: #FFFFFF;
+            --color-surface-alt: #F7F9F8;
+            --color-text: #252A32;
+            --color-text-secondary: #5B626B;
+            --color-text-tertiary: #8D949C;
+            --color-accent: #3080E0;
+            --color-accent-deep: #1F6FC8;
+            --color-accent-soft: #D0E0F8;
+            --color-mint: #58B7A7;
+            --color-mint-soft: #D8F0E8;
+            --color-coral: #FF8068;
+            --color-coral-soft: #FFE0D8;
+            --color-amber: #F6B44A;
+            --color-border: #E0E0E0;
+            --color-border-strong: #D0D0D0;
+            --color-divider: #EDEEEF;
+            --color-input-border: #DCDCDC;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+            --shadow-hairline: 0 1px 1px rgba(45,49,53,0.04);
+            --shadow-soft: 0 8px 24px rgba(45,49,53,0.08);
+            --shadow-active: 0 10px 28px rgba(48,128,224,0.18);
+            --focus-ring: 0 0 0 3px rgba(48,128,224,0.18);
+            --easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        body {
+            font-family: Inter, "SF Pro Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F7F9F8 55%, #F3FAF8 100%);
+            color: var(--color-text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .main-container {
+            max-width: 1300px;
+            margin: auto;
+            background: var(--color-surface);
+            padding: 2rem 2.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-hairline);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--color-text);
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin: 0 0 0.3rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--color-divider);
+        }
+
+        h1 .accent {
+            color: var(--color-accent);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--color-text-tertiary);
+            font-size: 0.82rem;
+            margin: 0 0 1.8rem;
+            font-weight: 400;
+        }
+
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-header {
+            grid-column: 1 / -1;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--color-accent);
+            margin-top: 0.3rem;
+            padding: 0.45rem 0.8rem;
+            border-left: 3px solid var(--color-accent);
+            background: var(--color-accent-soft);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            letter-spacing: 0.02em;
+        }
+
+        .dimension-control {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.1rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            box-shadow: var(--shadow-hairline);
+            transition: border-color 0.18s var(--easing), box-shadow 0.18s var(--easing);
+        }
+
+        .dimension-control:hover {
+            border-color: var(--color-border-strong);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .dimension-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .dimension-header label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--color-text);
+        }
+
+        .dimension-header .value-display {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-accent);
+            min-width: 20px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dimension-control input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--color-input-border);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .dimension-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            border: 2px solid var(--color-mint);
+            box-shadow: 0 3px 10px rgba(45,49,53,0.12);
+            cursor: pointer;
+            transition: border-color 0.18s var(--easing);
+        }
+
+        .dimension-control input[type="range"]::-webkit-slider-thumb:hover {
+            border-color: var(--color-accent);
+        }
+
+        .dimension-control input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            border: 2px solid var(--color-mint);
+            box-shadow: 0 3px 10px rgba(45,49,53,0.12);
+        }
+
+        .description-text {
+            margin-top: 0.6rem;
+            font-size: 0.78rem;
+            color: var(--color-text-tertiary);
+            min-height: 2.2em;
+            font-style: italic;
+        }
+
+        .actions {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #copyButton {
+            padding: 0.65rem 1.5rem;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #FFFFFF;
+            background: linear-gradient(180deg, #3B8BE8 0%, #1F6FC8 100%);
+            border: 1px solid var(--color-accent-deep);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            box-shadow: var(--shadow-active);
+            transition: opacity 0.18s var(--easing), box-shadow 0.18s var(--easing);
+            font-family: inherit;
+        }
+
+        #copyButton:hover {
+            opacity: 0.92;
+        }
+
+        #copyButton:active {
+            box-shadow: var(--shadow-hairline);
+        }
+
+        #copyButton:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring), 0 10px 28px rgba(48,128,224,0.18);
+        }
+
+        #copyMessage {
+            margin-left: 1rem;
+            color: var(--color-mint);
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.5s;
+            font-size: 0.85rem;
+        }
+
+        #yamlOutput {
+            width: 100%;
+            height: 320px;
+            font-family: "SF Mono", "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+            font-size: 0.78rem;
+            background: var(--color-surface-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 1.2rem;
+            box-sizing: border-box;
+            white-space: pre;
+            overflow-x: auto;
+            color: var(--color-text-secondary);
+            resize: vertical;
+        }
+
+        #yamlOutput:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: var(--focus-ring);
+        }
+
+        .presets {
+            text-align: center;
+            margin: 0.5rem 0 1.4rem;
+        }
+
+        .preset-button {
+            padding: 0.4rem 0.95rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--color-text);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin: 0 0.2rem 0.5rem;
+            box-shadow: var(--shadow-hairline);
+            transition: all 0.18s var(--easing);
+            font-family: inherit;
+        }
+
+        .preset-button:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .preset-button:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+
+        .preset-button.active {
+            background: var(--color-mint-soft);
+            border-color: var(--color-mint);
+            color: #157F73;
+            font-weight: 600;
+        }
+
+        #presetStatus {
+            text-align: center;
+            color: var(--color-text-tertiary);
+            font-size: 0.73rem;
+            margin: 0.4rem 0 0;
+            min-height: 1.1em;
+            transition: color 0.3s;
+        }
+
+        #presetStatus.flash {
+            color: var(--color-mint);
+        }
+
+        .quick-presets {
+            display: inline-flex;
+            gap: 0.35rem;
+            margin-left: 1rem;
+            vertical-align: middle;
+        }
+        .quick-preset-btn {
+            padding: 0.3rem 0.65rem;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s var(--easing);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .quick-preset-btn:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+            background: var(--color-accent-soft);
+        }
+        .quick-preset-btn:active {
+            background: var(--color-mint-soft);
+            border-color: var(--color-mint);
+            color: #157F73;
+        }
+        .quick-preset-btn.active {
+            background: var(--color-mint-soft);
+            border-color: var(--color-mint);
+            color: #157F73;
+            font-weight: 600;
+        }
+        .quick-preset-label {
+            font-size: 0.7rem;
+            color: var(--color-text-tertiary);
+            margin: 0 0.15rem;
+        }
+        @media (max-width: 600px) {
+            .quick-presets { display: flex; flex-wrap: wrap; justify-content: center; margin: 0.5rem 0 0; }
+        }
+
+        .preset-label {
+            text-align: center;
+            color: var(--color-text-tertiary);
+            font-size: 0.7rem;
+            margin: 0 0 0.3rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .main-container { padding: 1.2rem; border-radius: var(--radius-sm); }
+            .sliders-grid { grid-template-columns: 1fr; }
+            .preset-button { display: block; width: 100%; margin: 0.3rem 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>&lt;<span class="accent">/</span>&gt; AI 代码风格调优器</h1>
+        <p class="subtitle">Code Style Tuner &mdash; 50 维度 / 7 分组 / 0&ndash;5 代码风格量表</p>
+
+        <div class="presets">
+            <div class="preset-label">Presets</div>
+            <button class="preset-button active" id="presetStrict">PR 审得很细的人</button>
+            <button class="preset-button" id="presetPragmatic">业务线主力</button>
+            <button class="preset-button" id="presetPrototype">赶 Demo 的同事</button>
+            <button class="preset-button" id="presetLibrary">公共库维护者</button>
+            <button class="preset-button" id="presetEnterprise">平台组老员工</button>
+            <button class="preset-button" id="presetMinimalist">做重构的人</button>
+            <button class="preset-button" id="presetLiterate">技术文档作者</button>
+        </div>
+        <div id="presetStatus">当前预设：PR 审得很细的人</div>
+
+        <div class="sliders-grid" id="sliders-grid"></div>
+
+        <div class="actions">
+            <button id="copyButton">复制当前 YAML</button>
+            <span id="copyMessage">已复制!</span>
+            <span class="quick-preset-label">预设：</span>
+            <span class="quick-presets">
+                <button class="quick-preset-btn" id="quickPresetStrict">PR 审得很细的人</button>
+                <button class="quick-preset-btn" id="quickPresetPragmatic">业务线主力</button>
+                <button class="quick-preset-btn" id="quickPresetPrototype">赶 Demo 的同事</button>
+                <button class="quick-preset-btn" id="quickPresetLibrary">公共库维护者</button>
+                <button class="quick-preset-btn" id="quickPresetEnterprise">平台组老员工</button>
+                <button class="quick-preset-btn" id="quickPresetMinimalist">做重构的人</button>
+                <button class="quick-preset-btn" id="quickPresetLiterate">技术文档作者</button>
+            </span>
+        </div>
+
+        <textarea id="yamlOutput" readonly></textarea>
+    </div>
+
+    <script>
+    const dimensionsData = [
+        {
+                "id": "indentationStyle",
+                "category": "formattingStyle",
+                "name": "缩进样式与宽度 (Indentation Style & Width)",
+                "descriptions": [
+                        "同一文件内 Tab、空格和不同缩进宽度混在一起，起始列明显不稳定",
+                        "单个文件内缩进字符大体一致，但相邻块的缩进宽度偶尔突然变宽或变窄",
+                        "多数嵌套层级按同一缩进宽度推进，少数局部仍出现不规则起始列",
+                        "每个嵌套层级都以稳定缩进宽度推进，代码左边界形成清楚阶梯",
+                        "同类文件的缩进字符和缩进宽度一致，不同文件的缩进层级排列相近",
+                        "整份代码使用稳定的缩进规则，嵌套层级的起始列几乎没有突变"
+                ]
+        },
+        {
+                "id": "lineLengthDistribution",
+                "category": "formattingStyle",
+                "name": "行长分布 (Line Length Distribution)",
+                "descriptions": [
+                        "极短行和超长行随机交错，行长差异很大，常出现需要横向阅读的长行",
+                        "多数行较短，但偶尔有长表达式或长调用突然伸到视口右侧",
+                        "行长大致收敛在一个宽度区间，仍可见少量明显突出的长行",
+                        "长行经常被折成两三行，换行位置相对稳定",
+                        "大多数行停在相近长度内，只有少量字符串或注释突破边界",
+                        "同一文件内行宽分布均匀，长表达式、参数列表和注释都采用稳定换行方式"
+                ]
+        },
+        {
+                "id": "tokenSpacing",
+                "category": "formattingStyle",
+                "name": "符号间距 (Token Spacing)",
+                "descriptions": [
+                        "运算符、逗号、冒号和括号周围的空格随机出现或消失，标点贴合度混乱",
+                        "主要运算符周围常有空格，但对象、列表或调用参数中的间距仍不稳定",
+                        "逗号、冒号和二元运算符附近的空格多数一致，局部仍显得紧或松",
+                        "常见符号两侧空格形成固定节奏，代码行中的标点间隔较少突变",
+                        "对象、数组、参数列表和表达式中的空格模式在同类结构里反复出现",
+                        "同一文件内标点周围的空格规则稳定，紧贴、单空格和换行位置都可预期"
+                ]
+        },
+        {
+                "id": "bracePlacement",
+                "category": "formattingStyle",
+                "name": "代码块边界位置 (Block Delimiter Placement)",
+                "descriptions": [
+                        "块边界符有时贴在语句末尾，有时独占一行，同类块之间看不出规律",
+                        "大多数块边界符贴在声明或条件行末尾，但少数长块会改为独占一行",
+                        "函数、类、条件块的开头边界符基本都贴在同一行，垂直空间较紧凑",
+                        "不同块类型各自有固定位置，例如声明块和控制块使用不同边界写法",
+                        "开头边界符经常独占一行，代码块在上下边界更分明",
+                        "所有可见块边界符都按同一位置规则排列，边界线条在垂直方向高度一致"
+                ]
+        },
+        {
+                "id": "optionalBlockBraces",
+                "category": "formattingStyle",
+                "name": "可选代码块大括号 (Optional Block Braces)",
+                "descriptions": [
+                        "单行条件或循环体经常直接跟随语句，代码中有许多无边界短块",
+                        "多行块有边界符，单行块只有少数使用边界符，裸露短块较常见",
+                        "单行块和多行块混合使用边界符，块边界可见度处于中间状态",
+                        "大多数单行块也显示边界符，控制结构的起止位置较清楚",
+                        "几乎所有可选块都有显式边界符，短块也有清楚的开合标记",
+                        "所有可选块边界都可见，极短语句也使用统一的块写法"
+                ]
+        },
+        {
+                "id": "blankLineUsage",
+                "category": "formattingStyle",
+                "name": "空行使用 (Blank Line Usage)",
+                "descriptions": [
+                        "空行忽多忽少，代码有的粘连成团，有的被大段留白切断",
+                        "顶层声明之间偶尔有空行，但函数内部和相邻块之间经常粘连",
+                        "主要段落之间有空行，连续一行、两行或多行留白仍会混杂出现",
+                        "相似结构之间的空行数量大体一致，代码段间距可预测",
+                        "顶层、成员区和内部段落各自有稳定空行节奏，留白层级较清楚",
+                        "同一文件内空行使用稳定，粘连块和连续多空行都很少出现"
+                ]
+        },
+        {
+                "id": "importLayout",
+                "category": "formattingStyle",
+                "name": "导入区排列 (Import Layout)",
+                "descriptions": [
+                        "导入语句散落在文件各处，和普通代码交错出现，顶部没有固定导入区",
+                        "多数导入集中在顶部，但顺序和空行分组不稳定，仍夹杂零散导入",
+                        "导入语句集中在文件顶部，分组较少，整体是一段连续清单",
+                        "导入区域被空行分成几个清楚小组，每组内部排列方向大体一致",
+                        "导入块位置、分组和组内排序在同类文件中重复出现，顶部轮廓稳定",
+                        "导入区域排列规整，位置、空行、排序和多行导入缩进都高度一致"
+                ]
+        },
+        {
+                "id": "methodChainingFormat",
+                "category": "formattingStyle",
+                "name": "链式调用换行 (Method Chain Formatting)",
+                "descriptions": [
+                        "一连串调用压在同一行，点号或调用符号横向延伸成很长的线",
+                        "长链偶尔换行，但同一行仍常塞入多个调用片段，断点位置摇摆",
+                        "长链多数拆成多行，有的调用独占一行，有的仍与相邻调用同行",
+                        "每个调用片段基本独占一行，但连接符前置和后置位置仍混杂",
+                        "链式调用一行一个片段，连接符位置统一，缩进形成稳定竖列",
+                        "所有链式调用块的换行、缩进、连接符位置和收尾行都使用同一种写法"
+                ]
+        },
+        {
+                "id": "trailingCommaUsage",
+                "category": "formattingStyle",
+                "name": "末项逗号使用 (Trailing Comma Usage)",
+                "descriptions": [
+                        "可见逗号分隔列表的最后一项后通常没有逗号，列表尾部显得干净截断",
+                        "多行列表末项偶尔带逗号，同一文件内有带有不带的混合尾部",
+                        "跨行数组、对象或参数列表的末项后多数可见逗号",
+                        "所有跨行逗号分隔列表末项后都有逗号，单行列表通常没有",
+                        "跨行列表稳定带末项逗号，单行短列表里也经常能看到末项逗号",
+                        "所有可见逗号分隔列表无论单行或跨行，末项后都呈现逗号收尾"
+                ]
+        },
+        {
+                "id": "stringQuoteStyle",
+                "category": "formattingStyle",
+                "name": "字符串引号样式 (String Quote Style)",
+                "descriptions": [
+                        "普通字符串里单引号、双引号和模板式引号随机混用，分界不清",
+                        "某一种引号明显占多数，但仍有不少其他引号穿插在普通字符串中",
+                        "普通字符串几乎都使用同一种引号，只在内部字符冲突时切换",
+                        "普通字符串与插值或多行字符串使用不同引号形态，分界大体可见",
+                        "普通字符串、插值字符串和多行字符串各自有稳定引号规则",
+                        "同一文件内字符串引号使用高度一致，普通、插值和块字符串的区别清楚"
+                ]
+        },
+        {
+                "id": "verticalAlignment",
+                "category": "formattingStyle",
+                "name": "纵向对齐方式 (Vertical Alignment)",
+                "descriptions": [
+                        "等号、冒号、行尾注释和对象字段各自贴近前文，纵向没有任何对齐列",
+                        "局部相邻两三行偶尔对齐，但文件大部分仍按自然长度排列",
+                        "短小表格式代码里能看到对齐列，普通声明和赋值仍不刻意对齐",
+                        "对象字段、常量表或参数说明经常形成整齐的冒号、等号或注释列",
+                        "多处声明区和配置区使用纵向对齐，等号、冒号或注释位置连续对齐",
+                        "文件内凡是可成表的结构几乎都对齐，代码里排列明显表格化"
+                ]
+        },
+        {
+                "id": "listArgumentWrapping",
+                "category": "formattingStyle",
+                "name": "列表与参数换行 (List & Argument Wrapping)",
+                "descriptions": [
+                        "数组、对象、参数和泛型列表大多压在一行，长列表横向延伸明显",
+                        "只有很长的列表才换行，短列表和中等列表的展开方式不固定",
+                        "跨行列表常见，但一行多个元素和一行一个元素混合出现",
+                        "较长列表通常一项一行，短列表保留单行，换行阈值大体稳定",
+                        "多数多元素列表都纵向展开，每个元素占一行并共享同一缩进列",
+                        "列表、参数和对象字段几乎全部按一项一行展开，呈密集竖向清单"
+                ]
+        },
+        {
+                "id": "operatorLineBreak",
+                "category": "formattingStyle",
+                "name": "运算符换行位置 (Operator Line-break Position)",
+                "descriptions": [
+                        "长表达式很少换行，运算符跟随超长行向右延伸",
+                        "长表达式偶尔换行，运算符有时留在上一行，有时出现在下一行开头",
+                        "布尔表达式和算术表达式多数会换行，但断点位置仍不完全一致",
+                        "换行后的运算符位置大体统一，长表达式使用相近的续行写法",
+                        "长条件、三元表达式和链式组合都按同一运算符位置换行",
+                        "所有长表达式的运算符列、缩进和续行位置都高度一致，换行规则稳定"
+                ]
+        },
+        {
+                "id": "statementPacking",
+                "category": "formattingStyle",
+                "name": "语句压缩度 (Statement Packing)",
+                "descriptions": [
+                        "一行内经常塞入多个短语句、短控制流或内联函数，代码横向压缩明显",
+                        "简单语句常被压成一行，复杂语句才展开，短单行语句较多",
+                        "大多数语句一行一个，仍可见少量单行控制流或单行回调",
+                        "语句基本逐行展开，短控制流也多占据独立行块",
+                        "声明、条件、主体和返回值倾向分行呈现，垂直空间占用较高",
+                        "几乎没有压缩语句，连短表达式和小函数也展开成多行结构"
+                ]
+        },
+        {
+                "id": "identifierCasing",
+                "category": "namingStyle",
+                "name": "标识符大小写样式 (Identifier Casing)",
+                "descriptions": [
+                        "标识符大小写、下划线和连字符混杂出现，词段连接方式没有稳定规则",
+                        "多数标识符使用同一种连接方式，但常量、类型或函数名仍偶有不同写法",
+                        "不同角色的标识符开始呈现不同写法，例如大写块、驼峰或下划线形态可辨",
+                        "变量、函数、类型和常量各自有稳定大小写规则，少量例外仍可见",
+                        "同类标识符在不同文件中保持同一种大小写和分隔符形态",
+                        "整套代码的标识符规则高度稳定，凭写法即可分辨主要标识符角色"
+                ]
+        },
+        {
+                "id": "identifierLength",
+                "category": "namingStyle",
+                "name": "标识符长度分布 (Identifier Length Distribution)",
+                "descriptions": [
+                        "代码中充满一到三字符的短名和占位名，标识符非常零碎",
+                        "短名仍占多数，偶尔出现完整单词，整体标识符长度偏短",
+                        "单词级标识符和短缩写混合出现，长度分布处于中等",
+                        "多数字段、变量和函数名由一到两个完整词段组成，长度较均衡",
+                        "多词标识符频繁出现，驼峰转折或下划线词段较密",
+                        "标识符普遍接近短句，函数签名和调用处经常出现长名称"
+                ]
+        },
+        {
+                "id": "functionNameLength",
+                "category": "namingStyle",
+                "name": "函数名长度 (Function Name Length)",
+                "descriptions": [
+                        "函数名多为单个短动词或字母，声明行上的名称非常短促",
+                        "函数名由短动词加缩写目标组成，读起来是一小段压缩词块",
+                        "函数名多为动词加一个完整名词，声明行名称长度适中",
+                        "函数名经常包含动作、目标和一个限定词，形成稳定多词短语",
+                        "函数名带有多个限定词或范围后缀，声明行中名称区域明显变长",
+                        "函数名接近自然语言短句，调用处和声明处都出现长文字段"
+                ]
+        },
+        {
+                "id": "abbreviationUsage",
+                "category": "namingStyle",
+                "name": "缩写使用度 (Abbreviation Usage)",
+                "descriptions": [
+                        "标识符几乎都使用完整词段，少见压缩缩写",
+                        "只有少量常见短缩写散落在局部变量或循环附近",
+                        "缩写和完整词段混合出现，短 token 与长 token 比例接近",
+                        "短缩写在参数、变量和模块名中频繁出现，代码更紧凑",
+                        "多数标识符含有缩写词段，代码中有大量三到五字符 token",
+                        "标识符强烈偏向极短缩写，同一文件内名称多为密集短字母组合"
+                ]
+        },
+        {
+                "id": "identifierAffixes",
+                "category": "namingStyle",
+                "name": "标识符前后缀 (Identifier Affixes)",
+                "descriptions": [
+                        "标识符几乎没有固定前缀或后缀，名称首尾不带重复标记",
+                        "少数私有名、常量名或文件名带有前缀后缀，其余标识符没有明显规则",
+                        "若干角色会使用固定前缀或后缀，代码中偶尔出现成组相似名称首尾",
+                        "组件、类型、数据对象或状态名常带稳定后缀，名称尾部规则较明显",
+                        "前缀和后缀成为主要角色标记，文件内可见多组同尾或同头名称",
+                        "标识符边缘高度程式化，大量名称通过固定前缀、后缀或符号标记分组"
+                ]
+        },
+        {
+                "id": "typeAnnotationDensity",
+                "category": "namingStyle",
+                "name": "类型标注密度 (Type Annotation Density)",
+                "descriptions": [
+                        "变量、参数和返回位置旁几乎没有类型标记，名称多为裸露形态",
+                        "只有少量入口参数或字段旁出现类型词，类型标记零星可见",
+                        "函数签名中常见类型标记，函数体内部名称旁仍多为空白",
+                        "参数、返回值和成员声明旁普遍带类型词，声明区文字密度增加",
+                        "泛型、联合类型或复合类型频繁出现，签名区形成明显类型带",
+                        "回调、解构、局部变量和成员位置都带类型标记，同一文件内类型文本密集出现"
+                ]
+        },
+        {
+                "id": "literalNaming",
+                "category": "namingStyle",
+                "name": "裸字面量与命名常量比例 (Literal Naming)",
+                "descriptions": [
+                        "表达式中直接散布许多数字和字符串字面量，裸值在代码主体里很显眼",
+                        "重复裸值偶尔被提到附近常量，代码主体仍常见直接数字或字符串",
+                        "裸值和命名常量混合出现，常量定义区开始形成小段清单",
+                        "多数重复数字或字符串通过命名常量出现，表达式里裸值明显减少",
+                        "裸数字和裸字符串主要集中在常量定义右侧，主体代码多见常量名",
+                        "代码主体几乎都是命名常量或枚举名，裸字面量只在边界值或初始化处零星出现"
+                ]
+        },
+        {
+                "id": "literalFormatting",
+                "category": "namingStyle",
+                "name": "字面量格式 (Literal Formatting)",
+                "descriptions": [
+                        "数字、路径、正则和多行文本都以最短形式直接写入，字面量形态很朴素",
+                        "少数长数字或长字符串使用分隔符、拼接或换行，其余保持紧凑单行",
+                        "长字符串和长数字开始出现统一分隔，块字符串与普通字符串形态可区分",
+                        "多行文本、正则、路径和数字常使用固定排版，字面量块轮廓稳定",
+                        "字面量区域经常使用表格式排列、块文本或分组数字",
+                        "复杂字面量都有明确分隔和缩进，代码中的数据片段高度可辨"
+                ]
+        },
+        {
+                "id": "commentDensity",
+                "category": "commentStyle",
+                "name": "注释行密度 (Comment Line Density)",
+                "descriptions": [
+                        "代码中几乎没有注释符号，文件主要由可执行行和空行构成",
+                        "偶尔出现一两行短注释，通常贴近相关代码",
+                        "每屏能看到少量注释行，注释与代码之间形成轻微交替节奏",
+                        "注释块和注释行稳定穿插在代码段之间，文字层存在感明显",
+                        "注释行数量接近代码行的一半，文字解释和代码交错分布",
+                        "注释行接近或超过代码行，文字层占据主导位置"
+                ]
+        },
+        {
+                "id": "docblockStyle",
+                "category": "commentStyle",
+                "name": "文档块写法 (Docblock Style)",
+                "descriptions": [
+                        "声明上方没有成块文档注释，最多只有零散单行注释",
+                        "少数声明上方出现一到两行短注释，块高度很低",
+                        "可见简短多行文档块，通常只有摘要行和少量说明行",
+                        "文档块包含标签、参数行或返回行，声明前形成稳定注释段",
+                        "多数声明前都有多行文档块，注释块高度接近或超过函数体开头",
+                        "文档块结构丰富且频繁出现，标签、列表和段落让声明区呈连续文档带"
+                ]
+        },
+        {
+                "id": "todoMarkerUsage",
+                "category": "commentStyle",
+                "name": "TODO 标记使用 (TODO Marker Usage)",
+                "descriptions": [
+                        "文件中看不到 TODO、FIXME、HACK 等大写标记",
+                        "全文偶尔出现一两个标记，滚动时很容易略过",
+                        "标记零星散布在代码段之间，偶尔打断阅读",
+                        "多个段落边界出现标记，快速浏览时会反复看到大写短词",
+                        "几乎每屏都有多个标记，注释层呈现明显高频分布",
+                        "标记型注释非常密集，TODO、FIXME、HACK 成为代码中最显眼的文字之一"
+                ]
+        },
+        {
+                "id": "inlineCommentStyle",
+                "category": "commentStyle",
+                "name": "行尾注释写法 (Inline Comment Style)",
+                "descriptions": [
+                        "代码行末尾几乎没有注释，右侧区域主要为空白",
+                        "少数行尾有短注释，右侧只出现零星小尾巴",
+                        "局部相邻代码行带行尾注释，右侧形成短小注释簇",
+                        "大量代码行末尾带注释，右侧形成断续注释列",
+                        "行尾注释接近成列排列，右侧文字重量接近左侧代码",
+                        "几乎每行都有较长行尾注释，代码被挤在左侧，右侧成为连续文字栏"
+                ]
+        },
+        {
+                "id": "fileHeaderComment",
+                "category": "commentStyle",
+                "name": "文件头注释块 (File Header Comment Block)",
+                "descriptions": [
+                        "文件顶部直接进入代码，没有头部注释停顿",
+                        "顶部有一到两行紧贴代码的短注释",
+                        "顶部有三四行小型注释块，整体短而集中",
+                        "头部注释带空行、分隔线或框线，形成明确入口区域",
+                        "顶部注释扩展为多段落结构，内部有标题或分组留白",
+                        "大型头部注释占据初始视口大部分，边框、分隔和段落层次都很明显"
+                ]
+        },
+        {
+                "id": "sectionSeparatorUsage",
+                "category": "commentStyle",
+                "name": "分段分隔符使用 (Section Separator Usage)",
+                "descriptions": [
+                        "文件内部没有横线、区域标记或大标题注释，段落只靠空行区分",
+                        "偶尔出现短标题注释，作为局部段落标签",
+                        "几个主要区域前有标题注释，滚动时能看到稀疏分段锚点",
+                        "横线、标题或区域标记稳定划分文件，代码被分成几个清楚区段",
+                        "分隔注释频繁出现，文件内部有明显章节目录感",
+                        "分隔线、区域折叠标记和标题层级密集，文件结构接近带章节的文档"
+                ]
+        },
+        {
+                "id": "complexityCommentUsage",
+                "category": "commentStyle",
+                "name": "复杂度注释使用 (Complexity Comment Usage)",
+                "descriptions": [
+                        "注释中看不到复杂度、步骤数或规模相关标记",
+                        "少数循环或数据处理旁有简短规模提示，出现频率很低",
+                        "关键循环或递归附近可见复杂度短语或 O(...) 形态",
+                        "多个函数前后带有复杂度、空间或步骤说明，注释层出现技术短语",
+                        "复杂度注释在数据处理区域频繁出现，O(...) 和规模词成为明显代码标记",
+                        "多数算法式代码块都带复杂度说明，注释层形成连续的规模标记分布"
+                ]
+        },
+        {
+                "id": "functionLength",
+                "category": "blockStructure",
+                "name": "函数块高度 (Function Block Height)",
+                "descriptions": [
+                        "单个函数体占据多屏，滚动很久才能看到尾部",
+                        "函数体明显超过一屏，签名和尾部很少同时可见",
+                        "函数主体接近一屏，轻微滚动即可看到底部",
+                        "函数体约数十行以内，签名、主体和尾部距离较近",
+                        "函数体较短，十几行内即可看到完整边界",
+                        "函数极短，寥寥数行即可结束，连续代码中常排列多个完整函数"
+                ]
+        },
+        {
+                "id": "fileLength",
+                "category": "blockStructure",
+                "name": "文件纵向长度 (File Length)",
+                "descriptions": [
+                        "文件很长，滚动条滑块很小，轻拖就跨过大量代码",
+                        "文件需要许多屏才能到底，快速滚动时内容持续涌入视野",
+                        "文件约三到五屏高度，滚动几次能看到整体段落变化",
+                        "文件约一到两屏，打开后很快能感知完整轮廓",
+                        "文件基本收纳在一屏内，所有主要代码同处一个视野",
+                        "文件极短，内容只占很少行数，下方留下大片空白"
+                ]
+        },
+        {
+                "id": "nestingDepth",
+                "category": "blockStructure",
+                "name": "缩进层级深度 (Nesting Depth)",
+                "descriptions": [
+                        "缩进层级层层推进，最深代码被推到行的右侧",
+                        "大量代码起始列明显偏右，左侧空白区形成宽三角",
+                        "多数代码在四层以内，左侧阶梯可见但主体仍偏左",
+                        "最深缩进只把少量行推到中等偏右位置，阶梯较浅",
+                        "缩进通常不超过两层，绝大多数行靠近左边界",
+                        "几乎所有主体代码起始列一致，左侧没有明显阶梯累积"
+                ]
+        },
+        {
+                "id": "branchDensity",
+                "category": "blockStructure",
+                "name": "分支密度 (Branch Density)",
+                "descriptions": [
+                        "函数体几乎由条件、循环和选择标记堆叠而成，每几行就有一个分叉",
+                        "分支标记密集分布在函数各处，中间只夹少量直线语句",
+                        "分支标记与直线代码大致交替出现，函数中有多个决策区域",
+                        "分支结构集中在少数位置，主体区域以连续语句为主",
+                        "只有零星分支标记点缀在流程中，大部分代码块没有显式分叉",
+                        "函数体几乎看不到条件、循环或选择标记，结构上接近单一直线块"
+                ]
+        },
+        {
+                "id": "extractionGranularity",
+                "category": "blockStructure",
+                "name": "抽取颗粒度 (Extraction Granularity)",
+                "descriptions": [
+                        "大段语句堆在少数函数内，文件中主要是长连续代码块",
+                        "长块被空行分开成几个段落，但命名小块数量仍很少",
+                        "文件中开始出现多个短函数或局部小块，长块和短块混合",
+                        "代码由一组边界清楚的中短块组成，调用行和声明块交替出现",
+                        "短命名块占多数，相邻位置常出现多个完整函数或辅助块",
+                        "代码由许多极短命名块紧密排列组成"
+                ]
+        },
+        {
+                "id": "signatureWrapping",
+                "category": "blockStructure",
+                "name": "函数签名换行 (Signature Wrapping)",
+                "descriptions": [
+                        "函数签名宽度波动很大，长参数串常挤在一行向右延伸",
+                        "偶尔出现长签名，多数签名仍保持单行，换行方式不稳定",
+                        "超过数个参数的签名经常换行，但缩进和单行参数数目仍混合",
+                        "长签名按稳定方式换行，参数列和收尾括号位置大体一致",
+                        "多数签名很短，长签名一旦出现便按一项一行排列",
+                        "签名区域高度规整，参数、类型、默认值和收尾符形成固定竖向轮廓"
+                ]
+        },
+        {
+                "id": "memberOrdering",
+                "category": "blockStructure",
+                "name": "成员声明排序 (Member Ordering)",
+                "descriptions": [
+                        "字段、构造块、属性和方法交错出现，看不出固定垂直分组",
+                        "少数同类成员相邻，但不同成员类型仍常互相打断",
+                        "字段区、构造区和方法区大致可辨，区块边界偶有混入项",
+                        "成员按连续区块排列，区块之间有稳定先后顺序",
+                        "区块内部继续按静态、实例、可见性或名称形态细分排列",
+                        "同类文件的成员区块顺序高度一致，凭垂直位置即可预期下一个成员形态"
+                ]
+        },
+        {
+                "id": "topLevelOrdering",
+                "category": "blockStructure",
+                "name": "顶层声明排序 (Top-level Ordering)",
+                "descriptions": [
+                        "常量、类型、函数、导出和执行语句在文件顶层交错出现",
+                        "文件顶部偶尔聚集常量或导入，但主要声明顺序仍不稳定",
+                        "常量、类型和函数开始形成粗略区域，少数语句穿插其中",
+                        "顶层声明按固定区块排列，文件从上到下有可重复轮廓",
+                        "区块内部继续按名称、可见性或依赖方向排列，顶层轮廓更细",
+                        "同类文件顶层声明顺序几乎一致，打开文件即可看到熟悉的垂直模板"
+                ]
+        },
+        {
+                "id": "metadataAnnotationDensity",
+                "category": "blockStructure",
+                "name": "元数据标记密度 (Metadata Annotation Density)",
+                "descriptions": [
+                        "声明上方几乎没有装饰器、注解、属性或宏式标记行",
+                        "少数声明前有一行元数据标记，整体仍以普通声明为主",
+                        "元数据标记在类、函数或字段前周期性出现，声明区有轻微前缀层",
+                        "多个声明前有成组标记行，代码块上方经常形成小帽子",
+                        "元数据行数接近声明本身高度，声明前缀层很显眼",
+                        "大多数声明都被多行元数据包裹，代码呈标记层和声明层交替排列"
+                ]
+        },
+        {
+                "id": "errorMarkerDensity",
+                "category": "controlMarkerStyle",
+                "name": "错误标记密度 (Error Marker Density)",
+                "descriptions": [
+                        "代码中几乎看不到 error、err、fail、result 等错误相关短词",
+                        "少量错误标记只在边界调用附近出现，主体区域很少看到",
+                        "错误变量、返回分支或失败标记偶尔穿插在函数体中",
+                        "多个函数中可见错误分支小块，错误相关 token 呈稳定点状分布",
+                        "错误标记密集出现在入口、调用和返回附近，形成明显控制痕迹",
+                        "错误相关名称、分支和返回结构遍布文件，形成连续错误标记层"
+                ]
+        },
+        {
+                "id": "exceptionKeywordDensity",
+                "category": "controlMarkerStyle",
+                "name": "异常关键词密度 (Exception Keyword Density)",
+                "descriptions": [
+                        "代码中几乎没有 try、catch、throw 或同类异常关键词",
+                        "异常关键词偶尔出现在外层边界，主体代码很少被包裹",
+                        "少数函数内有短异常块，关键词形成小型竖向结构",
+                        "异常块在多个调用周围出现，try/catch 块成为常见段落",
+                        "嵌套或连续异常块较多，异常关键词反复出现",
+                        "大量代码被异常块包围或切分，异常关键词成为控制层的主要代码标记"
+                ]
+        },
+        {
+                "id": "nullMarkerDensity",
+                "category": "controlMarkerStyle",
+                "name": "空值标记密度 (Null Marker Density)",
+                "descriptions": [
+                        "代码中很少看到 null、nil、none、undefined 或空值符号",
+                        "空值标记只在少数边界判断或默认值附近出现",
+                        "空值比较、默认值符号或可空标记偶尔穿插在表达式中",
+                        "多个函数签名和条件中可见空值相关标记，形成稳定小痕迹",
+                        "空值标记在类型、条件和访问表达式中频繁出现，出现频率高",
+                        "空值相关 token 密布在声明和表达式中，同一文件内频繁出现可空或缺省写法"
+                ]
+        },
+        {
+                "id": "logStatementDensity",
+                "category": "controlMarkerStyle",
+                "name": "日志语句密度 (Log Statement Density)",
+                "descriptions": [
+                        "文件中几乎看不到 log、logger、trace、debug 等日志调用形态",
+                        "日志调用只在少数入口或错误附近出现，密度很低",
+                        "每屏能看到少量日志行，通常是独立短语句",
+                        "日志行在主要段落前后周期性出现，作为运行轨迹标记",
+                        "日志调用与业务语句频繁交错，代码中有许多相似调用行",
+                        "日志语句接近遍布每个控制段，代码里形成连续运行记录层"
+                ]
+        },
+        {
+                "id": "assertionMarkerDensity",
+                "category": "controlMarkerStyle",
+                "name": "断言标记密度 (Assertion Marker Density)",
+                "descriptions": [
+                        "函数体直接进入主体语句，几乎看不到 assert、check、require 等断言标记",
+                        "少量函数入口处有一两行断言标记",
+                        "多个公开入口前可见断言小块，函数开头形成重复前缀",
+                        "函数入口和收尾附近都能看到断言标记，边界写法更明显",
+                        "断言标记扩展到分支和循环内部，在主体区域反复出现",
+                        "断言、检查和约束标记密布文件，几乎与普通语句交错排列"
+                ]
+        },
+        {
+                "id": "asyncMarkerDensity",
+                "category": "controlMarkerStyle",
+                "name": "异步标记密度 (Async Marker Density)",
+                "descriptions": [
+                        "代码中几乎没有异步、回调、等待或订阅类标记",
+                        "少数调用附近出现回调或等待标记，整体仍以直线同步写法为主",
+                        "部分函数声明或调用链带异步标记，同步与异步形态混合排列",
+                        "异步标记在函数签名和函数体内频繁出现，等待点形成稳定节奏",
+                        "异步链、回调块或订阅式调用大段出现，代码呈明显编排写法",
+                        "文件主体由异步标记、回调层级或流式链条构成，异步形态占据主导"
+                ]
+        },
+        {
+                "id": "resourceLifetimeStyle",
+                "category": "controlMarkerStyle",
+                "name": "资源生命周期写法 (Resource Lifetime Style)",
+                "descriptions": [
+                        "分配、打开、关闭或释放类标记很少成对出现，生命周期痕迹不明显",
+                        "少数位置能看到打开或关闭标记，但配对分散且距离较远",
+                        "资源相关标记偶尔在同一小块内成对出现，形成短生命周期段落",
+                        "打开、使用、关闭或释放标记经常相邻排列，块边界较清楚",
+                        "生命周期标记在多个函数中使用相似包裹写法，资源段落很容易被看见",
+                        "资源相关块高度模式化，获取、使用、收尾标记形成重复模板"
+                ]
+        },
+        {
+                "id": "testNamingDensity",
+                "category": "testCodeStyle",
+                "name": "测试命名密度 (Test Naming Density)",
+                "descriptions": [
+                        "文件树或代码中几乎看不到 test、spec、should 等测试命名痕迹",
+                        "少数测试命名出现在零散文件或函数上，整体存在感很低",
+                        "测试文件或测试函数名称偶尔与源文件成对出现，命名痕迹可见",
+                        "多数相关文件旁能看到对应测试命名，文件树和声明区有稳定 test/spec 命名规则",
+                        "测试命名密集分布在目录、文件和函数层级，形成明显双轨结构",
+                        "几乎每个代码区域都有相邻测试命名痕迹，test/spec 命名规则贯穿项目代码中"
+                ]
+        },
+        {
+                "id": "testSetupStyle",
+                "category": "testCodeStyle",
+                "name": "测试准备写法 (Test Setup Style)",
+                "descriptions": [
+                        "测试函数直接写断言或调用，前置准备块几乎不可见",
+                        "少数测试前有一两行本地准备语句，setup 形态很轻",
+                        "每个测试内有短准备段，局部变量和样例数据形成小块",
+                        "文件顶部或测试组内出现固定 setup 块，测试体前后轮廓重复",
+                        "fixture、样例数据和准备函数占据明显区域，测试文件上半部有准备层",
+                        "测试文件由大量 fixture、factory、setup 和 teardown 块构成，准备层非常厚"
+                ]
+        },
+        {
+                "id": "assertionStyle",
+                "category": "testCodeStyle",
+                "name": "断言写法 (Assertion Style)",
+                "descriptions": [
+                        "断言写法短促直接，常见裸关键字或单个短调用",
+                        "断言主要是普通函数调用，参数都在同一行内排列",
+                        "断言调用带有少量辅助方法或消息参数，表达式长度中等",
+                        "链式断言或嵌套断言经常出现，断言行由多段调用连接组成",
+                        "复杂断言常拆成多行，匹配器或比较器形成缩进块",
+                        "断言区域高度 DSL 化，长链、多行匹配器和自定义断言名称反复出现"
+                ]
+        },
+        {
+                "id": "testDoubleUsage",
+                "category": "testCodeStyle",
+                "name": "测试替身使用度 (Test Double Usage)",
+                "descriptions": [
+                        "测试中几乎看不到 mock、stub、fake、spy 等替身命名",
+                        "少数测试里出现一两个替身变量或短调用，密度很低",
+                        "替身命名在部分测试函数中出现，常与准备段相邻",
+                        "多个测试前置段含有替身对象，mock/stub/fake 命名规则稳定可见",
+                        "替身相关声明、配置和验证调用频繁出现，测试文件呈双层结构",
+                        "测试替身标记密集到成为主要代码标记，准备、调用和校验处都有替身痕迹"
+                ]
+        },
+        {
+                "id": "repeatedCodeBlocks",
+                "category": "repetitionStyle",
+                "name": "重复代码块密度 (Repeated Code Blocks)",
+                "descriptions": [
+                        "代码中出现大段结构相同的代码块，复制痕迹非常明显",
+                        "相似代码块在不同位置重复出现，只在少数名称或字面量上有差异",
+                        "重复块和抽取调用混合存在，部分相似段已缩成单行调用",
+                        "大多数相似段落变为命名调用，重复代码主要以短小残片出现",
+                        "代码中几乎看不到大段相似代码，更多是共享函数或共享调用行",
+                        "重复代码被压缩到统一调用或表驱动数据，代码以共享调用和短调用为主"
+                ]
+        }
+];
+
+    const categories = [
+        {
+                "id": "formattingStyle",
+                "name": "格式排版 (Formatting & Layout)",
+                "dimensions": [
+                        "indentationStyle",
+                        "lineLengthDistribution",
+                        "tokenSpacing",
+                        "bracePlacement",
+                        "optionalBlockBraces",
+                        "blankLineUsage",
+                        "importLayout",
+                        "methodChainingFormat",
+                        "trailingCommaUsage",
+                        "stringQuoteStyle",
+                        "verticalAlignment",
+                        "listArgumentWrapping",
+                        "operatorLineBreak",
+                        "statementPacking"
+                ]
+        },
+        {
+                "id": "namingStyle",
+                "name": "命名与类型 (Naming & Types)",
+                "dimensions": [
+                        "identifierCasing",
+                        "identifierLength",
+                        "functionNameLength",
+                        "abbreviationUsage",
+                        "identifierAffixes",
+                        "typeAnnotationDensity",
+                        "literalNaming",
+                        "literalFormatting"
+                ]
+        },
+        {
+                "id": "commentStyle",
+                "name": "注释写法 (Comment Style)",
+                "dimensions": [
+                        "commentDensity",
+                        "docblockStyle",
+                        "todoMarkerUsage",
+                        "inlineCommentStyle",
+                        "fileHeaderComment",
+                        "sectionSeparatorUsage",
+                        "complexityCommentUsage"
+                ]
+        },
+        {
+                "id": "blockStructure",
+                "name": "代码块结构 (Code Block Structure)",
+                "dimensions": [
+                        "functionLength",
+                        "fileLength",
+                        "nestingDepth",
+                        "branchDensity",
+                        "extractionGranularity",
+                        "signatureWrapping",
+                        "memberOrdering",
+                        "topLevelOrdering",
+                        "metadataAnnotationDensity"
+                ]
+        },
+        {
+                "id": "controlMarkerStyle",
+                "name": "控制与运行标记 (Control & Runtime Markers)",
+                "dimensions": [
+                        "errorMarkerDensity",
+                        "exceptionKeywordDensity",
+                        "nullMarkerDensity",
+                        "logStatementDensity",
+                        "assertionMarkerDensity",
+                        "asyncMarkerDensity",
+                        "resourceLifetimeStyle"
+                ]
+        },
+        {
+                "id": "testCodeStyle",
+                "name": "测试代码写法 (Test Code Style)",
+                "dimensions": [
+                        "testNamingDensity",
+                        "testSetupStyle",
+                        "assertionStyle",
+                        "testDoubleUsage"
+                ]
+        },
+        {
+                "id": "repetitionStyle",
+                "name": "重复代码与共享调用 (Repeated Code & Shared Calls)",
+                "dimensions": [
+                        "repeatedCodeBlocks"
+                ]
+        }
+];
+
+    const slidersGrid = document.getElementById('sliders-grid');
+    const copyButton = document.getElementById('copyButton');
+    const copyMessage = document.getElementById('copyMessage');
+    const yamlOutput = document.getElementById('yamlOutput');
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, Number(v))); }
+    function getDim(id) { return dimensionsData.find(d => d.id === id); }
+    function getSliderEl(id) { return document.getElementById(id + '-slider'); }
+    function getValue(id) { return clamp(getSliderEl(id).value, 0, 5); }
+    function updateUIFor(id) {
+        const val = getValue(id);
+        const valEl = document.getElementById(id + '-value');
+        if (valEl) valEl.textContent = String(val);
+        const dim = getDim(id);
+        if (dim) {
+            const descEl = document.getElementById(id + '-desc');
+            if (descEl) descEl.textContent = dim.descriptions[val];
+        }
+    }
+    function setSliderValue(id, value) {
+        const el = getSliderEl(id);
+        if (!el) return;
+        el.value = clamp(value, 0, 5);
+        updateUIFor(id);
+    }
+
+    function renderSliders() {
+        categories.forEach(cat => {
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'category-header';
+            headerDiv.textContent = cat.name;
+            slidersGrid.appendChild(headerDiv);
+            cat.dimensions.forEach(id => {
+                const dim = getDim(id);
+                if (!dim) return;
+                const controlDiv = document.createElement('div');
+                controlDiv.className = 'dimension-control';
+                controlDiv.innerHTML =
+                    '<div class="dimension-header">' +
+                    '<label for="' + dim.id + '-slider">' + dim.name + '</label>' +
+                    '<span class="value-display" id="' + dim.id + '-value">3</span>' +
+                    '</div>' +
+                    '<input type="range" id="' + dim.id + '-slider" name="' + dim.id + '" min="0" max="5" value="3" step="1">' +
+                    '<p class="description-text" id="' + dim.id + '-desc">' + dim.descriptions[3] + '</p>';
+                slidersGrid.appendChild(controlDiv);
+            });
+        });
+    }
+
+    function generateYaml() {
+        let yaml = '[待优化的提示词 开始]# 你的代码风格\n\n量表统一：0-5 离散档，默认中位值3，便于用户微调一到两档即可感知差异。\n\n你的代码风格应满足如下设定（按分组展示）：\n\n';
+        categories.forEach(cat => {
+            yaml += '- 分组: "' + cat.name + '"\n';
+            yaml += '  id: "' + cat.id + '"\n';
+            yaml += '  维度:\n';
+            cat.dimensions.forEach(id => {
+                const dim = getDim(id);
+                if (!dim) return;
+                const slider = document.getElementById(dim.id + '-slider');
+                if (!slider) return;
+                const score = slider.value;
+                const description = dim.descriptions[score];
+                yaml += '    - 名称: "' + dim.name + '"\n';
+                yaml += '      分数: ' + score + '\n';
+                yaml += '      值说明: "' + description + '"\n';
+            });
+        });
+        yaml += '\n\n[待优化的提示词 结束]\n\n重写为一段连续书写的提示词(不是结构化写作), 前缀为"你的Code个性是".\n\n';
+        return yaml;
+    }
+
+    function updateYamlOutput() {
+        yamlOutput.textContent = generateYaml();
+    }
+
+    function copyYaml() {
+        navigator.clipboard.writeText(generateYaml()).then(() => {
+            copyMessage.style.opacity = '1';
+            setTimeout(() => { copyMessage.style.opacity = '0'; }, 2000);
+        }).catch(err => {
+            alert('复制失败，请手动复制。');
+        });
+    }
+
+
+    function handleSliderInput(event) {
+        if (event.target.type === 'range') {
+            const id = event.target.name;
+            updateUIFor(id);
+            updateYamlOutput();
+        }
+    }
+
+    // Presets
+    const presets = {
+        "strict": {
+                "indentationStyle": 5,
+                "lineLengthDistribution": 4,
+                "tokenSpacing": 5,
+                "bracePlacement": 5,
+                "optionalBlockBraces": 5,
+                "blankLineUsage": 5,
+                "importLayout": 5,
+                "methodChainingFormat": 5,
+                "trailingCommaUsage": 4,
+                "stringQuoteStyle": 5,
+                "verticalAlignment": 2,
+                "listArgumentWrapping": 4,
+                "operatorLineBreak": 5,
+                "statementPacking": 4,
+                "identifierCasing": 5,
+                "identifierLength": 4,
+                "functionNameLength": 4,
+                "abbreviationUsage": 1,
+                "identifierAffixes": 3,
+                "typeAnnotationDensity": 3,
+                "literalNaming": 3,
+                "literalFormatting": 4,
+                "commentDensity": 2,
+                "docblockStyle": 2,
+                "todoMarkerUsage": 1,
+                "inlineCommentStyle": 2,
+                "fileHeaderComment": 1,
+                "sectionSeparatorUsage": 2,
+                "complexityCommentUsage": 1,
+                "functionLength": 4,
+                "fileLength": 3,
+                "nestingDepth": 4,
+                "branchDensity": 3,
+                "extractionGranularity": 3,
+                "signatureWrapping": 5,
+                "memberOrdering": 5,
+                "topLevelOrdering": 5,
+                "metadataAnnotationDensity": 2,
+                "errorMarkerDensity": 2,
+                "exceptionKeywordDensity": 2,
+                "nullMarkerDensity": 2,
+                "logStatementDensity": 2,
+                "assertionMarkerDensity": 2,
+                "asyncMarkerDensity": 2,
+                "resourceLifetimeStyle": 2,
+                "testNamingDensity": 2,
+                "testSetupStyle": 3,
+                "assertionStyle": 3,
+                "testDoubleUsage": 2,
+                "repeatedCodeBlocks": 3
+        },
+        "pragmatic": {
+                "indentationStyle": 4,
+                "lineLengthDistribution": 3,
+                "tokenSpacing": 4,
+                "bracePlacement": 2,
+                "optionalBlockBraces": 4,
+                "blankLineUsage": 3,
+                "importLayout": 3,
+                "methodChainingFormat": 2,
+                "trailingCommaUsage": 2,
+                "stringQuoteStyle": 3,
+                "verticalAlignment": 2,
+                "listArgumentWrapping": 3,
+                "operatorLineBreak": 3,
+                "statementPacking": 3,
+                "identifierCasing": 4,
+                "identifierLength": 3,
+                "functionNameLength": 3,
+                "abbreviationUsage": 2,
+                "identifierAffixes": 1,
+                "typeAnnotationDensity": 3,
+                "literalNaming": 3,
+                "literalFormatting": 2,
+                "commentDensity": 2,
+                "docblockStyle": 2,
+                "todoMarkerUsage": 2,
+                "inlineCommentStyle": 1,
+                "fileHeaderComment": 0,
+                "sectionSeparatorUsage": 1,
+                "complexityCommentUsage": 1,
+                "functionLength": 3,
+                "fileLength": 3,
+                "nestingDepth": 3,
+                "branchDensity": 3,
+                "extractionGranularity": 3,
+                "signatureWrapping": 3,
+                "memberOrdering": 3,
+                "topLevelOrdering": 3,
+                "metadataAnnotationDensity": 2,
+                "errorMarkerDensity": 3,
+                "exceptionKeywordDensity": 2,
+                "nullMarkerDensity": 3,
+                "logStatementDensity": 2,
+                "assertionMarkerDensity": 2,
+                "asyncMarkerDensity": 2,
+                "resourceLifetimeStyle": 3,
+                "testNamingDensity": 3,
+                "testSetupStyle": 2,
+                "assertionStyle": 2,
+                "testDoubleUsage": 2,
+                "repeatedCodeBlocks": 3
+        },
+        "prototype": {
+                "indentationStyle": 1,
+                "lineLengthDistribution": 1,
+                "tokenSpacing": 1,
+                "bracePlacement": 1,
+                "optionalBlockBraces": 0,
+                "blankLineUsage": 1,
+                "importLayout": 1,
+                "methodChainingFormat": 0,
+                "trailingCommaUsage": 1,
+                "stringQuoteStyle": 1,
+                "verticalAlignment": 0,
+                "listArgumentWrapping": 0,
+                "operatorLineBreak": 1,
+                "statementPacking": 1,
+                "identifierCasing": 1,
+                "identifierLength": 1,
+                "functionNameLength": 1,
+                "abbreviationUsage": 4,
+                "identifierAffixes": 1,
+                "typeAnnotationDensity": 0,
+                "literalNaming": 1,
+                "literalFormatting": 0,
+                "commentDensity": 2,
+                "docblockStyle": 0,
+                "todoMarkerUsage": 3,
+                "inlineCommentStyle": 0,
+                "fileHeaderComment": 0,
+                "sectionSeparatorUsage": 0,
+                "complexityCommentUsage": 0,
+                "functionLength": 1,
+                "fileLength": 1,
+                "nestingDepth": 1,
+                "branchDensity": 1,
+                "extractionGranularity": 1,
+                "signatureWrapping": 1,
+                "memberOrdering": 1,
+                "topLevelOrdering": 1,
+                "metadataAnnotationDensity": 0,
+                "errorMarkerDensity": 1,
+                "exceptionKeywordDensity": 1,
+                "nullMarkerDensity": 1,
+                "logStatementDensity": 2,
+                "assertionMarkerDensity": 1,
+                "asyncMarkerDensity": 1,
+                "resourceLifetimeStyle": 1,
+                "testNamingDensity": 0,
+                "testSetupStyle": 1,
+                "assertionStyle": 0,
+                "testDoubleUsage": 0,
+                "repeatedCodeBlocks": 1
+        },
+        "library": {
+                "indentationStyle": 4,
+                "lineLengthDistribution": 4,
+                "tokenSpacing": 4,
+                "bracePlacement": 3,
+                "optionalBlockBraces": 4,
+                "blankLineUsage": 4,
+                "importLayout": 4,
+                "methodChainingFormat": 4,
+                "trailingCommaUsage": 3,
+                "stringQuoteStyle": 4,
+                "verticalAlignment": 2,
+                "listArgumentWrapping": 4,
+                "operatorLineBreak": 4,
+                "statementPacking": 3,
+                "identifierCasing": 4,
+                "identifierLength": 4,
+                "functionNameLength": 4,
+                "abbreviationUsage": 1,
+                "identifierAffixes": 3,
+                "typeAnnotationDensity": 4,
+                "literalNaming": 4,
+                "literalFormatting": 3,
+                "commentDensity": 3,
+                "docblockStyle": 5,
+                "todoMarkerUsage": 2,
+                "inlineCommentStyle": 2,
+                "fileHeaderComment": 4,
+                "sectionSeparatorUsage": 3,
+                "complexityCommentUsage": 3,
+                "functionLength": 4,
+                "fileLength": 3,
+                "nestingDepth": 4,
+                "branchDensity": 4,
+                "extractionGranularity": 4,
+                "signatureWrapping": 4,
+                "memberOrdering": 4,
+                "topLevelOrdering": 4,
+                "metadataAnnotationDensity": 2,
+                "errorMarkerDensity": 3,
+                "exceptionKeywordDensity": 3,
+                "nullMarkerDensity": 3,
+                "logStatementDensity": 2,
+                "assertionMarkerDensity": 3,
+                "asyncMarkerDensity": 2,
+                "resourceLifetimeStyle": 4,
+                "testNamingDensity": 5,
+                "testSetupStyle": 3,
+                "assertionStyle": 4,
+                "testDoubleUsage": 3,
+                "repeatedCodeBlocks": 4
+        },
+        "enterprise": {
+                "indentationStyle": 5,
+                "lineLengthDistribution": 4,
+                "tokenSpacing": 5,
+                "bracePlacement": 5,
+                "optionalBlockBraces": 5,
+                "blankLineUsage": 5,
+                "importLayout": 5,
+                "methodChainingFormat": 4,
+                "trailingCommaUsage": 4,
+                "stringQuoteStyle": 5,
+                "verticalAlignment": 4,
+                "listArgumentWrapping": 4,
+                "operatorLineBreak": 5,
+                "statementPacking": 4,
+                "identifierCasing": 5,
+                "identifierLength": 4,
+                "functionNameLength": 4,
+                "abbreviationUsage": 1,
+                "identifierAffixes": 4,
+                "typeAnnotationDensity": 4,
+                "literalNaming": 4,
+                "literalFormatting": 4,
+                "commentDensity": 3,
+                "docblockStyle": 4,
+                "todoMarkerUsage": 1,
+                "inlineCommentStyle": 3,
+                "fileHeaderComment": 3,
+                "sectionSeparatorUsage": 4,
+                "complexityCommentUsage": 3,
+                "functionLength": 4,
+                "fileLength": 3,
+                "nestingDepth": 4,
+                "branchDensity": 3,
+                "extractionGranularity": 4,
+                "signatureWrapping": 4,
+                "memberOrdering": 5,
+                "topLevelOrdering": 5,
+                "metadataAnnotationDensity": 4,
+                "errorMarkerDensity": 4,
+                "exceptionKeywordDensity": 3,
+                "nullMarkerDensity": 4,
+                "logStatementDensity": 4,
+                "assertionMarkerDensity": 4,
+                "asyncMarkerDensity": 3,
+                "resourceLifetimeStyle": 4,
+                "testNamingDensity": 5,
+                "testSetupStyle": 4,
+                "assertionStyle": 4,
+                "testDoubleUsage": 4,
+                "repeatedCodeBlocks": 4
+        },
+        "minimalist": {
+                "indentationStyle": 4,
+                "lineLengthDistribution": 3,
+                "tokenSpacing": 4,
+                "bracePlacement": 4,
+                "optionalBlockBraces": 4,
+                "blankLineUsage": 2,
+                "importLayout": 3,
+                "methodChainingFormat": 2,
+                "trailingCommaUsage": 2,
+                "stringQuoteStyle": 4,
+                "verticalAlignment": 0,
+                "listArgumentWrapping": 2,
+                "operatorLineBreak": 3,
+                "statementPacking": 1,
+                "identifierCasing": 4,
+                "identifierLength": 2,
+                "functionNameLength": 2,
+                "abbreviationUsage": 3,
+                "identifierAffixes": 1,
+                "typeAnnotationDensity": 2,
+                "literalNaming": 2,
+                "literalFormatting": 1,
+                "commentDensity": 0,
+                "docblockStyle": 0,
+                "todoMarkerUsage": 0,
+                "inlineCommentStyle": 0,
+                "fileHeaderComment": 0,
+                "sectionSeparatorUsage": 0,
+                "complexityCommentUsage": 0,
+                "functionLength": 5,
+                "fileLength": 5,
+                "nestingDepth": 5,
+                "branchDensity": 4,
+                "extractionGranularity": 5,
+                "signatureWrapping": 2,
+                "memberOrdering": 3,
+                "topLevelOrdering": 3,
+                "metadataAnnotationDensity": 0,
+                "errorMarkerDensity": 1,
+                "exceptionKeywordDensity": 1,
+                "nullMarkerDensity": 1,
+                "logStatementDensity": 0,
+                "assertionMarkerDensity": 0,
+                "asyncMarkerDensity": 1,
+                "resourceLifetimeStyle": 1,
+                "testNamingDensity": 1,
+                "testSetupStyle": 1,
+                "assertionStyle": 1,
+                "testDoubleUsage": 0,
+                "repeatedCodeBlocks": 5
+        },
+        "literate": {
+                "indentationStyle": 4,
+                "lineLengthDistribution": 3,
+                "tokenSpacing": 4,
+                "bracePlacement": 3,
+                "optionalBlockBraces": 4,
+                "blankLineUsage": 4,
+                "importLayout": 4,
+                "methodChainingFormat": 3,
+                "trailingCommaUsage": 3,
+                "stringQuoteStyle": 4,
+                "verticalAlignment": 2,
+                "listArgumentWrapping": 4,
+                "operatorLineBreak": 4,
+                "statementPacking": 4,
+                "identifierCasing": 4,
+                "identifierLength": 5,
+                "functionNameLength": 5,
+                "abbreviationUsage": 0,
+                "identifierAffixes": 2,
+                "typeAnnotationDensity": 3,
+                "literalNaming": 4,
+                "literalFormatting": 4,
+                "commentDensity": 5,
+                "docblockStyle": 5,
+                "todoMarkerUsage": 2,
+                "inlineCommentStyle": 3,
+                "fileHeaderComment": 5,
+                "sectionSeparatorUsage": 5,
+                "complexityCommentUsage": 4,
+                "functionLength": 3,
+                "fileLength": 2,
+                "nestingDepth": 3,
+                "branchDensity": 3,
+                "extractionGranularity": 3,
+                "signatureWrapping": 4,
+                "memberOrdering": 4,
+                "topLevelOrdering": 4,
+                "metadataAnnotationDensity": 1,
+                "errorMarkerDensity": 2,
+                "exceptionKeywordDensity": 2,
+                "nullMarkerDensity": 2,
+                "logStatementDensity": 2,
+                "assertionMarkerDensity": 2,
+                "asyncMarkerDensity": 2,
+                "resourceLifetimeStyle": 2,
+                "testNamingDensity": 3,
+                "testSetupStyle": 3,
+                "assertionStyle": 3,
+                "testDoubleUsage": 1,
+                "repeatedCodeBlocks": 3
+        }
+};
+
+    const presetDisplayNames = {
+        strict: 'PR 审得很细的人（统一格式和顺序）',
+        pragmatic: '业务线主力（团队默认写法）',
+        prototype: '赶 Demo 的同事（快速验证想法）',
+        library: '公共库维护者（公开接口写法）',
+        enterprise: '平台组老员工（规程和标记多）',
+        minimalist: '做重构的人（短块少标记）',
+        literate: '技术文档作者（边写边说明）'
+    };
+
+    function applyPreset(key) {
+        const cfg = presets[key];
+        if (!cfg) return;
+        Object.entries(cfg).forEach(([id, val]) => {
+            setSliderValue(id, val);
+        });
+        updateYamlOutput();
+        updatePresetStatus(key);
+    }
+
+    function updatePresetStatus(key) {
+        // Update active button
+        document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.quick-preset-btn').forEach(btn => btn.classList.remove('active'));
+        const btnMap = { strict: 'presetStrict', pragmatic: 'presetPragmatic', prototype: 'presetPrototype', library: 'presetLibrary', enterprise: 'presetEnterprise', minimalist: 'presetMinimalist', literate: 'presetLiterate' };
+        const quickBtnMap = { strict: 'quickPresetStrict', pragmatic: 'quickPresetPragmatic', prototype: 'quickPresetPrototype', library: 'quickPresetLibrary', enterprise: 'quickPresetEnterprise', minimalist: 'quickPresetMinimalist', literate: 'quickPresetLiterate' };
+        const activeBtn = document.getElementById(btnMap[key]);
+        if (activeBtn) activeBtn.classList.add('active');
+        const activeQuickBtn = document.getElementById(quickBtnMap[key]);
+        if (activeQuickBtn) activeQuickBtn.classList.add('active');
+        // Update status text
+        const statusEl = document.getElementById('presetStatus');
+        if (statusEl) {
+            const name = presetDisplayNames[key] || key;
+            statusEl.textContent = '当前预设：' + name;
+            statusEl.classList.remove('flash');
+            void statusEl.offsetWidth;
+            statusEl.classList.add('flash');
+        }
+    }
+
+    // Init
+    renderSliders();
+    updateYamlOutput();
+
+    slidersGrid.addEventListener('input', handleSliderInput);
+    copyButton.addEventListener('click', copyYaml);
+
+    document.getElementById('presetStrict').addEventListener('click', () => applyPreset('strict'));
+    document.getElementById('presetPragmatic').addEventListener('click', () => applyPreset('pragmatic'));
+    document.getElementById('presetPrototype').addEventListener('click', () => applyPreset('prototype'));
+    document.getElementById('presetLibrary').addEventListener('click', () => applyPreset('library'));
+    document.getElementById('presetEnterprise').addEventListener('click', () => applyPreset('enterprise'));
+    document.getElementById('presetMinimalist').addEventListener('click', () => applyPreset('minimalist'));
+    document.getElementById('presetLiterate').addEventListener('click', () => applyPreset('literate'));
+
+    // Quick-preset copy buttons
+    document.getElementById('quickPresetStrict').addEventListener('click', () => applyPreset('strict'));
+    document.getElementById('quickPresetPragmatic').addEventListener('click', () => applyPreset('pragmatic'));
+    document.getElementById('quickPresetPrototype').addEventListener('click', () => applyPreset('prototype'));
+    document.getElementById('quickPresetLibrary').addEventListener('click', () => applyPreset('library'));
+    document.getElementById('quickPresetEnterprise').addEventListener('click', () => applyPreset('enterprise'));
+    document.getElementById('quickPresetMinimalist').addEventListener('click', () => applyPreset('minimalist'));
+    document.getElementById('quickPresetLiterate').addEventListener('click', () => applyPreset('literate'));
+    </script>
+</body>
+</html>

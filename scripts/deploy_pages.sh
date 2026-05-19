@@ -74,10 +74,10 @@ if ! git remote | grep -q '^origin$'; then
       echo "Creating GitHub repo ($VISIBILITY) and pushing..."
       if [[ -n "$OWNER" ]]; then
         gh repo create "$OWNER/$REPO_NAME" --$VISIBILITY --source=. --remote=origin --push -y \
-          --description "AI 对话风格调优器 - GitHub Pages"
+          --description "LLM 风格调优工具集合 - GitHub Pages"
       else
         gh repo create "$REPO_NAME" --$VISIBILITY --source=. --remote=origin --push -y \
-          --description "AI 对话风格调优器 - GitHub Pages"
+          --description "LLM 风格调优工具集合 - GitHub Pages"
       fi
     fi
   else
