@@ -317,17 +317,25 @@
             font-weight: 600;
         }
 
-        #presetStatus {
+        .status-banner {
             text-align: center;
-            color: var(--color-text-tertiary);
-            font-size: 0.73rem;
-            margin: 0.4rem 0 0;
-            min-height: 1.1em;
-            transition: color 0.3s;
+            margin: 0 0 1rem;
+            padding: 0.6rem 1rem;
+            background: var(--color-mint-soft);
+            border: 1px solid rgba(88, 183, 167, 0.42);
+            color: #157F73;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            box-shadow: var(--shadow-hairline);
         }
 
-        #presetStatus.flash {
-            color: var(--color-mint);
+        .status-banner.flash {
+            animation: statusFlash 0.9s ease;
+        }
+
+        @keyframes statusFlash {
+            0% { box-shadow: 0 0 0 0 rgba(88, 183, 167, 0.35); }
+            100% { box-shadow: 0 0 0 8px rgba(88, 183, 167, 0); }
         }
 
         .quick-presets {
@@ -399,6 +407,8 @@
         <h1>&lt;<span class="accent">/</span>&gt; AI 代码风格调优器</h1>
         <p class="subtitle">Code Style Tuner &mdash; 50 维度 / 7 分组 / 0&ndash;5 代码风格量表</p>
 
+        <div id="presetStatus" class="status-banner" role="status" aria-live="polite">当前预设：PR 审得很细的人（统一格式和顺序）</div>
+
         <div class="actions">
             <button class="copy-button" type="button">生成并复制 YAML</button>
             <span class="copy-message">已复制!</span>
@@ -414,7 +424,6 @@
             <button class="preset-button" type="button" data-preset="minimalist">做重构的人</button>
             <button class="preset-button" type="button" data-preset="literate">技术文档作者</button>
         </div>
-        <div id="presetStatus">当前预设：PR 审得很细的人</div>
 
         <div class="sliders-grid" id="sliders-grid"></div>
 
