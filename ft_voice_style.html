@@ -217,7 +217,7 @@
             margin-bottom: 1.5rem;
         }
 
-        #copyButton {
+        .copy-button {
             padding: 0.8rem 1.5rem;
             font-size: 0.95rem;
             font-weight: 600;
@@ -234,23 +234,23 @@
                 transform 180ms var(--style-tuning-easing);
         }
 
-        #copyButton:hover {
+        .copy-button:hover {
             opacity: 0.94;
         }
 
-        #copyButton:active {
+        .copy-button:active {
             box-shadow: var(--style-tuning-shadow-hairline);
             transform: translateY(1px);
         }
 
-        #copyButton:focus-visible {
+        .copy-button:focus-visible {
             outline: none;
             box-shadow:
                 var(--style-tuning-focus-ring),
                 var(--style-tuning-shadow-active);
         }
 
-        #copyMessage {
+        .copy-message {
             margin-left: 1rem;
             color: var(--style-tuning-color-mint);
             font-weight: 600;
@@ -546,7 +546,7 @@
                 font-size: 0.95rem;
             }
 
-            #copyMessage {
+            .copy-message {
                 display: block;
                 margin: 0.6rem 0 0;
             }
@@ -559,33 +559,51 @@
     <h1>AI 对话风格调优器 (AI Conversation Style Tuner)</h1>
     <div id="presetStatus" class="status-banner" role="status" aria-live="polite">未选择预设 (No preset selected)</div>
     <div id="toastRoot" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-    <div id="sliders-grid" class="sliders-grid">
-        <!-- Sliders will be dynamically inserted here -->
-    </div>
-    
+
     <div class="actions">
-        <button id="copyButton">生成并复制 YAML (Copy YAML)</button>
-        <span id="copyMessage">已复制! (Copied!)</span>
+        <button class="copy-button" type="button">生成并复制 YAML (Copy YAML)</button>
+        <span class="copy-message">已复制! (Copied!)</span>
     </div>
 
     <div class="presets">
-        <button class="preset-button" id="presetProMinimal">专业极简 (Pro Minimal)</button>
-        <button class="preset-button" id="presetFriendly">友好助理 (Friendly Assistant)</button>
-        <button class="preset-button" id="presetAcademic">学术审稿 (Academic Review)</button>
-        <!-- 新增 Persona 预设 -->
-        <button class="preset-button" id="presetProfessional">专业 (Professional)</button>
-        <button class="preset-button" id="presetEfficient">高效 (Efficient)</button>
-        <button class="preset-button" id="presetFriendlyPersona">友好 (Friendly)</button>
-        <button class="preset-button" id="presetCandid">直率 (Candid)</button>
-        <button class="preset-button" id="presetQuirky">好玩 (Quirky)</button>
-        <button class="preset-button" id="presetNerdy">技术向 (Nerdy)</button>
-        <button class="preset-button" id="presetCynical">怀疑 (Cynical)</button>
+        <button class="preset-button" type="button" data-preset="proMinimal">专业极简 (Pro Minimal)</button>
+        <button class="preset-button" type="button" data-preset="friendlyAssistant">友好助理 (Friendly Assistant)</button>
+        <button class="preset-button" type="button" data-preset="academicReview">学术审稿 (Academic Review)</button>
+        <button class="preset-button" type="button" data-preset="professionalPersona">专业 (Professional)</button>
+        <button class="preset-button" type="button" data-preset="efficientPersona">高效 (Efficient)</button>
+        <button class="preset-button" type="button" data-preset="friendlyPersona">友好 (Friendly)</button>
+        <button class="preset-button" type="button" data-preset="candidPersona">直率 (Candid)</button>
+        <button class="preset-button" type="button" data-preset="quirkyPersona">好玩 (Quirky)</button>
+        <button class="preset-button" type="button" data-preset="nerdyPersona">技术向 (Nerdy)</button>
+        <button class="preset-button" type="button" data-preset="cynicalPersona">怀疑 (Cynical)</button>
+    </div>
+
+    <div id="sliders-grid" class="sliders-grid">
+        <!-- Sliders will be dynamically inserted here -->
     </div>
 
     <div id="extraPromptsSection" class="extra-prompts-section">
         <h3>附加提示词模块 (Extra Prompts)（可为各维度选择附加指令）</h3>
         <p class="extra-prompts-help">带<span class="exclusive-tag">EX</span>的为互斥 (exclusive) 项：同一维度仅允许选一个；其余可多选。选择结果将附加到 YAML 对应维度下 (Appended to YAML).</p>
         <div id="extraPromptsContainer"></div>
+    </div>
+
+    <div class="actions">
+        <button class="copy-button" type="button">生成并复制 YAML (Copy YAML)</button>
+        <span class="copy-message">已复制! (Copied!)</span>
+    </div>
+
+    <div class="presets">
+        <button class="preset-button" type="button" data-preset="proMinimal">专业极简 (Pro Minimal)</button>
+        <button class="preset-button" type="button" data-preset="friendlyAssistant">友好助理 (Friendly Assistant)</button>
+        <button class="preset-button" type="button" data-preset="academicReview">学术审稿 (Academic Review)</button>
+        <button class="preset-button" type="button" data-preset="professionalPersona">专业 (Professional)</button>
+        <button class="preset-button" type="button" data-preset="efficientPersona">高效 (Efficient)</button>
+        <button class="preset-button" type="button" data-preset="friendlyPersona">友好 (Friendly)</button>
+        <button class="preset-button" type="button" data-preset="candidPersona">直率 (Candid)</button>
+        <button class="preset-button" type="button" data-preset="quirkyPersona">好玩 (Quirky)</button>
+        <button class="preset-button" type="button" data-preset="nerdyPersona">技术向 (Nerdy)</button>
+        <button class="preset-button" type="button" data-preset="cynicalPersona">怀疑 (Cynical)</button>
     </div>
 
     <h2>结果预览 (Preview)</h2>
@@ -947,20 +965,9 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     const slidersGrid = document.getElementById('sliders-grid');
-    const copyButton = document.getElementById('copyButton');
-    const copyMessage = document.getElementById('copyMessage');
+    const copyButtons = document.querySelectorAll('.copy-button');
+    const copyMessages = document.querySelectorAll('.copy-message');
     const yamlOutput = document.getElementById('yamlOutput');
-    const presetProMinimalBtn = document.getElementById('presetProMinimal');
-    const presetFriendlyBtn = document.getElementById('presetFriendly');
-    const presetAcademicBtn = document.getElementById('presetAcademic');
-    // 新增 Persona 预设按钮引用
-    const presetProfessionalBtn = document.getElementById('presetProfessional');
-    const presetEfficientBtn = document.getElementById('presetEfficient');
-    const presetFriendlyPersonaBtn = document.getElementById('presetFriendlyPersona');
-    const presetCandidBtn = document.getElementById('presetCandid');
-    const presetQuirkyBtn = document.getElementById('presetQuirky');
-    const presetNerdyBtn = document.getElementById('presetNerdy');
-    const presetCynicalBtn = document.getElementById('presetCynical');
 
     let isBatchUpdating = false; // 防止联动时递归
 
@@ -1816,27 +1823,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function updatePresetStatus(presetKey) {
-        const buttonMap = {
-            proMinimal: 'presetProMinimal',
-            friendlyAssistant: 'presetFriendly',
-            academicReview: 'presetAcademic',
-            professionalPersona: 'presetProfessional',
-            efficientPersona: 'presetEfficient',
-            friendlyPersona: 'presetFriendlyPersona',
-            candidPersona: 'presetCandid',
-            quirkyPersona: 'presetQuirky',
-            nerdyPersona: 'presetNerdy',
-            cynicalPersona: 'presetCynical'
-        };
         document.querySelectorAll('.preset-button').forEach(button => {
             button.classList.remove('active');
             button.setAttribute('aria-pressed', 'false');
         });
-        const activeButton = document.getElementById(buttonMap[presetKey]);
-        if (activeButton) {
-            activeButton.classList.add('active');
-            activeButton.setAttribute('aria-pressed', 'true');
-        }
+        document.querySelectorAll(`.preset-button[data-preset="${presetKey}"]`).forEach(button => {
+            button.classList.add('active');
+            button.setAttribute('aria-pressed', 'true');
+        });
 
         const el = document.getElementById('presetStatus');
         if (!el) return;
@@ -1934,9 +1928,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function copyYaml() {
         const yamlText = generateYaml();
         navigator.clipboard.writeText(yamlText).then(() => {
-            copyMessage.style.opacity = '1';
+            copyMessages.forEach(message => {
+                message.style.opacity = '1';
+            });
             setTimeout(() => {
-                copyMessage.style.opacity = '0';
+                copyMessages.forEach(message => {
+                    message.style.opacity = '0';
+                });
             }, 2000);
         }).catch(err => {
             console.error('无法复制文本: ', err);
@@ -1951,18 +1949,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event Listeners
     slidersGrid.addEventListener('input', handleSliderInput);
-    copyButton.addEventListener('click', copyYaml);
-    if (presetProMinimalBtn) presetProMinimalBtn.addEventListener('click', () => applyPreset('proMinimal'));
-    if (presetFriendlyBtn) presetFriendlyBtn.addEventListener('click', () => applyPreset('friendlyAssistant'));
-    if (presetAcademicBtn) presetAcademicBtn.addEventListener('click', () => applyPreset('academicReview'));
-    // 绑定新增 Persona 预设
-    if (presetProfessionalBtn) presetProfessionalBtn.addEventListener('click', () => applyPreset('professionalPersona'));
-    if (presetEfficientBtn) presetEfficientBtn.addEventListener('click', () => applyPreset('efficientPersona'));
-    if (presetFriendlyPersonaBtn) presetFriendlyPersonaBtn.addEventListener('click', () => applyPreset('friendlyPersona'));
-    if (presetCandidBtn) presetCandidBtn.addEventListener('click', () => applyPreset('candidPersona'));
-    if (presetQuirkyBtn) presetQuirkyBtn.addEventListener('click', () => applyPreset('quirkyPersona'));
-    if (presetNerdyBtn) presetNerdyBtn.addEventListener('click', () => applyPreset('nerdyPersona'));
-    if (presetCynicalBtn) presetCynicalBtn.addEventListener('click', () => applyPreset('cynicalPersona'));
+    copyButtons.forEach(button => button.addEventListener('click', copyYaml));
+    document.querySelectorAll('.preset-button[data-preset]').forEach(button => {
+        button.addEventListener('click', () => applyPreset(button.dataset.preset));
+    });
 });
 </script>
 

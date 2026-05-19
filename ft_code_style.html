@@ -185,7 +185,7 @@
             margin-bottom: 1.5rem;
         }
 
-        #copyButton {
+        .copy-button {
             padding: 0.65rem 1.5rem;
             font-size: 0.9em;
             font-weight: 600;
@@ -199,20 +199,20 @@
             font-family: inherit;
         }
 
-        #copyButton:hover {
+        .copy-button:hover {
             opacity: 0.92;
         }
 
-        #copyButton:active {
+        .copy-button:active {
             box-shadow: var(--shadow-hairline);
         }
 
-        #copyButton:focus-visible {
+        .copy-button:focus-visible {
             outline: none;
             box-shadow: var(--focus-ring), 0 10px 28px rgba(48,128,224,0.18);
         }
 
-        #copyMessage {
+        .copy-message {
             margin-left: 1rem;
             color: var(--color-mint);
             font-weight: 600;
@@ -372,6 +372,7 @@
         }
         @media (max-width: 600px) {
             .quick-presets { display: flex; flex-wrap: wrap; justify-content: center; margin: 0.5rem 0 0; }
+            .copy-message { display: block; margin: 0.6rem 0 0; }
         }
 
         .preset-label {
@@ -398,33 +399,39 @@
         <h1>&lt;<span class="accent">/</span>&gt; AI 代码风格调优器</h1>
         <p class="subtitle">Code Style Tuner &mdash; 50 维度 / 7 分组 / 0&ndash;5 代码风格量表</p>
 
+        <div class="actions">
+            <button class="copy-button" type="button">生成并复制 YAML</button>
+            <span class="copy-message">已复制!</span>
+        </div>
+
         <div class="presets">
             <div class="preset-label">Presets</div>
-            <button class="preset-button active" id="presetStrict">PR 审得很细的人</button>
-            <button class="preset-button" id="presetPragmatic">业务线主力</button>
-            <button class="preset-button" id="presetPrototype">赶 Demo 的同事</button>
-            <button class="preset-button" id="presetLibrary">公共库维护者</button>
-            <button class="preset-button" id="presetEnterprise">平台组老员工</button>
-            <button class="preset-button" id="presetMinimalist">做重构的人</button>
-            <button class="preset-button" id="presetLiterate">技术文档作者</button>
+            <button class="preset-button active" type="button" data-preset="strict">PR 审得很细的人</button>
+            <button class="preset-button" type="button" data-preset="pragmatic">业务线主力</button>
+            <button class="preset-button" type="button" data-preset="prototype">赶 Demo 的同事</button>
+            <button class="preset-button" type="button" data-preset="library">公共库维护者</button>
+            <button class="preset-button" type="button" data-preset="enterprise">平台组老员工</button>
+            <button class="preset-button" type="button" data-preset="minimalist">做重构的人</button>
+            <button class="preset-button" type="button" data-preset="literate">技术文档作者</button>
         </div>
         <div id="presetStatus">当前预设：PR 审得很细的人</div>
 
         <div class="sliders-grid" id="sliders-grid"></div>
 
         <div class="actions">
-            <button id="copyButton">生成并复制 YAML</button>
-            <span id="copyMessage">已复制!</span>
-            <span class="quick-preset-label">预设：</span>
-            <span class="quick-presets">
-                <button class="quick-preset-btn" id="quickPresetStrict">PR 审得很细的人</button>
-                <button class="quick-preset-btn" id="quickPresetPragmatic">业务线主力</button>
-                <button class="quick-preset-btn" id="quickPresetPrototype">赶 Demo 的同事</button>
-                <button class="quick-preset-btn" id="quickPresetLibrary">公共库维护者</button>
-                <button class="quick-preset-btn" id="quickPresetEnterprise">平台组老员工</button>
-                <button class="quick-preset-btn" id="quickPresetMinimalist">做重构的人</button>
-                <button class="quick-preset-btn" id="quickPresetLiterate">技术文档作者</button>
-            </span>
+            <button class="copy-button" type="button">生成并复制 YAML</button>
+            <span class="copy-message">已复制!</span>
+        </div>
+
+        <div class="presets">
+            <div class="preset-label">Presets</div>
+            <button class="preset-button active" type="button" data-preset="strict">PR 审得很细的人</button>
+            <button class="preset-button" type="button" data-preset="pragmatic">业务线主力</button>
+            <button class="preset-button" type="button" data-preset="prototype">赶 Demo 的同事</button>
+            <button class="preset-button" type="button" data-preset="library">公共库维护者</button>
+            <button class="preset-button" type="button" data-preset="enterprise">平台组老员工</button>
+            <button class="preset-button" type="button" data-preset="minimalist">做重构的人</button>
+            <button class="preset-button" type="button" data-preset="literate">技术文档作者</button>
         </div>
 
         <textarea id="yamlOutput" readonly></textarea>
@@ -1195,8 +1202,8 @@
 ];
 
     const slidersGrid = document.getElementById('sliders-grid');
-    const copyButton = document.getElementById('copyButton');
-    const copyMessage = document.getElementById('copyMessage');
+    const copyButtons = document.querySelectorAll('.copy-button');
+    const copyMessages = document.querySelectorAll('.copy-message');
     const yamlOutput = document.getElementById('yamlOutput');
 
     function clamp(v, min, max) { return Math.max(min, Math.min(max, Number(v))); }
@@ -1289,8 +1296,14 @@
 
     function copyYaml() {
         navigator.clipboard.writeText(generateYaml()).then(() => {
-            copyMessage.style.opacity = '1';
-            setTimeout(() => { copyMessage.style.opacity = '0'; }, 2000);
+            copyMessages.forEach(message => {
+                message.style.opacity = '1';
+            });
+            setTimeout(() => {
+                copyMessages.forEach(message => {
+                    message.style.opacity = '0';
+                });
+            }, 2000);
         }).catch(err => {
             alert('复制失败，请手动复制。');
         });
@@ -1697,12 +1710,9 @@
         // Update active button
         document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.quick-preset-btn').forEach(btn => btn.classList.remove('active'));
-        const btnMap = { strict: 'presetStrict', pragmatic: 'presetPragmatic', prototype: 'presetPrototype', library: 'presetLibrary', enterprise: 'presetEnterprise', minimalist: 'presetMinimalist', literate: 'presetLiterate' };
-        const quickBtnMap = { strict: 'quickPresetStrict', pragmatic: 'quickPresetPragmatic', prototype: 'quickPresetPrototype', library: 'quickPresetLibrary', enterprise: 'quickPresetEnterprise', minimalist: 'quickPresetMinimalist', literate: 'quickPresetLiterate' };
-        const activeBtn = document.getElementById(btnMap[key]);
-        if (activeBtn) activeBtn.classList.add('active');
-        const activeQuickBtn = document.getElementById(quickBtnMap[key]);
-        if (activeQuickBtn) activeQuickBtn.classList.add('active');
+        document.querySelectorAll(`[data-preset="${key}"]`).forEach(btn => {
+            btn.classList.add('active');
+        });
         // Update status text
         const statusEl = document.getElementById('presetStatus');
         if (statusEl) {
@@ -1719,24 +1729,10 @@
     updateYamlOutput();
 
     slidersGrid.addEventListener('input', handleSliderInput);
-    copyButton.addEventListener('click', copyYaml);
-
-    document.getElementById('presetStrict').addEventListener('click', () => applyPreset('strict'));
-    document.getElementById('presetPragmatic').addEventListener('click', () => applyPreset('pragmatic'));
-    document.getElementById('presetPrototype').addEventListener('click', () => applyPreset('prototype'));
-    document.getElementById('presetLibrary').addEventListener('click', () => applyPreset('library'));
-    document.getElementById('presetEnterprise').addEventListener('click', () => applyPreset('enterprise'));
-    document.getElementById('presetMinimalist').addEventListener('click', () => applyPreset('minimalist'));
-    document.getElementById('presetLiterate').addEventListener('click', () => applyPreset('literate'));
-
-    // Quick-preset copy buttons
-    document.getElementById('quickPresetStrict').addEventListener('click', () => applyPreset('strict'));
-    document.getElementById('quickPresetPragmatic').addEventListener('click', () => applyPreset('pragmatic'));
-    document.getElementById('quickPresetPrototype').addEventListener('click', () => applyPreset('prototype'));
-    document.getElementById('quickPresetLibrary').addEventListener('click', () => applyPreset('library'));
-    document.getElementById('quickPresetEnterprise').addEventListener('click', () => applyPreset('enterprise'));
-    document.getElementById('quickPresetMinimalist').addEventListener('click', () => applyPreset('minimalist'));
-    document.getElementById('quickPresetLiterate').addEventListener('click', () => applyPreset('literate'));
+    copyButtons.forEach(button => button.addEventListener('click', copyYaml));
+    document.querySelectorAll('[data-preset]').forEach(button => {
+        button.addEventListener('click', () => applyPreset(button.dataset.preset));
+    });
     </script>
 </body>
 </html>
