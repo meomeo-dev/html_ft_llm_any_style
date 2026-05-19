@@ -314,6 +314,13 @@
             box-shadow: var(--style-tuning-focus-ring);
         }
 
+        .preset-button.active {
+            color: #FFFFFF;
+            background: linear-gradient(180deg, #3B8BE8 0%, #1F6FC8 100%);
+            border-color: var(--style-tuning-color-accent-deep);
+            box-shadow: var(--style-tuning-shadow-active);
+        }
+
         /* 负相关徽标样式 */
         .invert-badge {
             display: inline-block;
@@ -1809,6 +1816,28 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function updatePresetStatus(presetKey) {
+        const buttonMap = {
+            proMinimal: 'presetProMinimal',
+            friendlyAssistant: 'presetFriendly',
+            academicReview: 'presetAcademic',
+            professionalPersona: 'presetProfessional',
+            efficientPersona: 'presetEfficient',
+            friendlyPersona: 'presetFriendlyPersona',
+            candidPersona: 'presetCandid',
+            quirkyPersona: 'presetQuirky',
+            nerdyPersona: 'presetNerdy',
+            cynicalPersona: 'presetCynical'
+        };
+        document.querySelectorAll('.preset-button').forEach(button => {
+            button.classList.remove('active');
+            button.setAttribute('aria-pressed', 'false');
+        });
+        const activeButton = document.getElementById(buttonMap[presetKey]);
+        if (activeButton) {
+            activeButton.classList.add('active');
+            activeButton.setAttribute('aria-pressed', 'true');
+        }
+
         const el = document.getElementById('presetStatus');
         if (!el) return;
         const name = presetDisplayNames[presetKey] || presetKey;

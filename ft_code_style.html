@@ -243,6 +243,42 @@
             box-shadow: var(--focus-ring);
         }
 
+        .usage-details {
+            margin-top: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 0.8rem;
+            background: var(--color-surface-alt);
+            box-shadow: var(--shadow-hairline);
+        }
+
+        .usage-details summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .usage-details-body {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+            margin-top: 0.5rem;
+        }
+
+        .usage-details-body p {
+            margin: 0.2rem 0 0.6rem;
+        }
+
+        .usage-steps {
+            padding-left: 1.2rem;
+            margin: 0 0 0.6rem;
+        }
+
+        .usage-substeps {
+            margin: 0.3rem 0 0.2rem 1.2rem;
+            list-style: disc;
+        }
+
         .presets {
             text-align: center;
             margin: 0.5rem 0 1.4rem;
@@ -377,7 +413,7 @@
         <div class="sliders-grid" id="sliders-grid"></div>
 
         <div class="actions">
-            <button id="copyButton">复制当前 YAML</button>
+            <button id="copyButton">生成并复制 YAML</button>
             <span id="copyMessage">已复制!</span>
             <span class="quick-preset-label">预设：</span>
             <span class="quick-presets">
@@ -392,6 +428,21 @@
         </div>
 
         <textarea id="yamlOutput" readonly></textarea>
+        <details class="usage-details">
+            <summary>说明：使用方式与后续处理 (How to Use)</summary>
+            <div class="usage-details-body">
+                <p>本工具用于配置代码风格与行为准则，生成可复用的 YAML 片段，作为系统提示或配置片段使用。</p>
+                <ol class="usage-steps">
+                    <li>在上方选择预设或逐项调整各维度，生成 YAML。</li>
+                    <li>点击“生成并复制 YAML”，后处理推荐两种方式：
+                        <ul class="usage-substeps">
+                            <li>用 Claude / GPT 的“提示优化”能力，将 YAML 转为连续说明文本；</li>
+                            <li>或直接让 AI 将 YAML 转写为连续说明文本，然后人工微调。</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </details>
     </div>
 
     <script>
